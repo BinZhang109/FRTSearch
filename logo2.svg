@@ -1,0 +1,45 @@
+<svg width="500" height="60" viewBox="0 0 500 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0B0F19"/>
+      <stop offset="100%" style="stop-color:#1A2236"/>
+    </linearGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="500" height="60" fill="url(#bg2)" rx="8"/>
+
+  <!-- 左侧：射电望远镜图标（上移） -->
+  <g transform="translate(20, 24) scale(0.7)">
+    <!-- 望远镜碟形 -->
+    <ellipse cx="0" cy="0" rx="22" ry="10" fill="none" stroke="#F1C40F" stroke-width="2.5" filter="url(#glow2)"/>
+    <!-- 望远镜支架 -->
+    <line x1="0" y1="0" x2="0" y2="22" stroke="#F1C40F" stroke-width="2.5"/>
+    <line x1="-12" y1="22" x2="12" y2="22" stroke="#F1C40F" stroke-width="2.5"/>
+    <!-- 信号波纹 -->
+    <path d="M 28,-6 Q 36,0 28,6" stroke="#00BFFF" stroke-width="1.8" fill="none" opacity="0.7"/>
+    <path d="M 36,-10 Q 48,0 36,10" stroke="#00BFFF" stroke-width="1.8" fill="none" opacity="0.5"/>
+    <path d="M 44,-14 Q 60,0 44,14" stroke="#00BFFF" stroke-width="1.8" fill="none" opacity="0.3"/>
+  </g>
+  
+  <!-- 色散曲线图标 -->
+  <g transform="translate(65, 15)">
+    <rect width="32" height="30" fill="#000" fill-opacity="0.4" rx="3"/>
+    <path d="M 4,4 Q 12,18 28,26" stroke="#F1C40F" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#glow2)"/>
+    <path d="M 3,3 Q 11,17 29,27 L 30,24 Q 14,15 5,2 Z" stroke="#FF00FF" stroke-width="1" fill="none" stroke-dasharray="2,1.5" opacity="0.7"/>
+  </g>
+  
+  <!-- 文字部分（加大字号，调整间距） -->
+  <text x="115" y="39" font-family="Arial Black, sans-serif" font-size="28" fill="#F1C40F" font-weight="800">FRT</text>
+  <text x="180" y="39" font-family="Arial, sans-serif" font-size="28" fill="#FFFFFF" font-weight="300">Search</text>
+  
+  <!-- 分隔线 -->
+  <line x1="285" y1="16" x2="285" y2="44" stroke="#3a4a5a" stroke-width="1.5"/>
+  
+  <!-- 右侧说明文字（调整位置和大小） -->
+  <text x="300" y="30" font-family="monospace" font-size="11.5" fill="#AAB2C0" letter-spacing="0.3">Fast Radio Transients Search</text>
+  <text x="300" y="45" font-family="sans-serif" font-size="9.5" fill="#667799" font-style="italic">AI-Powered Dispersive Trajectory Detection</text>
+</svg>
