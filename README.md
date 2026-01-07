@@ -6,7 +6,7 @@
 
 <div align="center">
 
-🚀 **FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation** 🚀
+🚀 **Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation** 🚀
 
 <!-- Badges on one line -->
 [![Paper](https://img.shields.io/badge/Paper-AASTeX-blue.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Dataset](https://img.shields.io/badge/Dataset-CRAFTS--FRT-yellow.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Framework](https://img.shields.io/badge/Framework-MMDetection-red.svg)](https://github.com/open-mmlab/mmdetection) [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-grey.svg)](./LICENSE)
@@ -159,4 +159,3 @@ If you use FRTSearch or the CRAFTS-FRT dataset in your research, please cite our
 <div align="center">
   <sub>Exploring the dynamic universe with AI 🌌📡</sub>
 </div>
-```
