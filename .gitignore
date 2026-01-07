@@ -1,1 +1,48 @@
+# 模型权重
 *.pth
+*.pt
+*.ckpt
+
+# 图片目录
+png/
+
+# Utils 目录
+utils/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.so
+
+# 虚拟环境
+venv/
+env/
+.venv/
+ENV/
+
+# 数据文件
+data/
+datasets/
+*.fits
+*.fil
+
+# 输出
+outputs/
+results/
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# MMDetection
+work_dirs/
+.mim/

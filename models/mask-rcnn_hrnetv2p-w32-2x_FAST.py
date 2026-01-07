@@ -27,6 +27,7 @@ img_norm_cfg = dict(
 launcher = 'pytorch'
 log_level = 'INFO'
 log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
+max_epochs = 36
 model = dict(
     backbone=dict(
         extra=dict(
@@ -259,9 +260,7 @@ test_cfg = dict(type='TestLoop')
 test_dataloader = dict(
     batch_size=1,
     dataset=dict(
-        ann_file='/det_workspace/train_data/annotations/val_20250930.json',
         backend_args=None,
-        data_prefix=dict(img='/det_workspace/train_data/npy_250709/'),
         data_root='/det_workspace/train_data/',
         metainfo=dict(classes=[
             'FRT',
@@ -287,40 +286,6 @@ test_dataloader = dict(
     num_workers=2,
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
-test_evaluator = [
-    dict(
-        ann_file='/det_workspace/train_data/annotations/val_20250930.json',
-        backend_args=None,
-        format_only=False,
-        metric=[
-            'bbox',
-            'segm',
-        ],
-        type='CocoMetric'),
-    dict(
-        ann_file='/det_workspace/train_data/annotations/val_20250930.json',
-        backbone_name='hrnetv2p-w32-2x',
-        basebandStd=1.0,
-        data_root='/det_workspace/train_data/npy_250709/',
-        df=0.1220703125,
-        downsample_freq=16,
-        downsample_time=16,
-        freq_range=[
-            1000.0,
-            1500.0,
-        ],
-        max_epochs=36,
-        nsubint=4,
-        output_dir='/det_workspace/params_infer',
-        param_dir='/det_workspace/params_infer',
-        positive_iou=0.1,
-        ransac_cfg=dict(fit_pair=True, iterations=50, sample_points=100),
-        scaling=1.0,
-        score_threshold=0.1,
-        tbox=50,
-        tsamp=9.8304e-05,
-        type='FastDataMetric'),
-]
 test_pipeline = [
     dict(to_float32=True, type='LoadImageFromNumpy'),
     dict(factors=[
@@ -336,13 +301,5 @@ test_pipeline = [
     dict(size_divisor=32, type='Pad'),
     dict(type='PackDetInputs'),
 ]
-vis_backends = [
-    dict(type='LocalVisBackend'),
-]
-visualizer = dict(
-    name='visualizer',
-    type='DetLocalVisualizer',
-    vis_backends=[
-        dict(type='LocalVisBackend'),
-    ])
-work_dir = './result_1115/mask-rcnn_hrnetv2p-w32-2x_FAST_25-11-15-10-52-07'
+
+

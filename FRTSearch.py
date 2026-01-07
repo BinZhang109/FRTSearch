@@ -1,20 +1,34 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Author: Bin Zhang
+Date: 2025.8.11
+
+FRTSearch - Fast Radio Transients Search Tool (Single File Mode)
+
+Usage:
+    python FRTSearch.py data.fits config.py --slide-size 128
+    python FRTSearch.py data.fil config.py --slide-size 64 --no-plots
+"""
+
 import os
 import argparse
 import tqdm
 import logging
 import traceback
 import gc
-import torch
-import torch.multiprocessing as mp
-from multiprocessing import Pool
-import pickle
+import re
 import time
 
-from utils import FitsDetector, waterfall
+import torch
+from multiprocessing import Pool
+
+from utils import FRTDetector, waterfall
 from mmengine.config import Config
 
+
 def plot_worker(plot_task):
-    """绘图工作进程"""
+    """Plot worker process for parallel plotting"""
     try:
         from utils import psrfits, filterbank
         
@@ -29,9 +43,9 @@ def plot_worker(plot_task):
         basebandStd = plot_task['basebandStd']
         output_dir = plot_task['output_dir']
         pulsar = plot_task['pulsar']
-        confidence = plot_task['confidence']
+        confidence = plot_task.get('score', None)
         
-        # 重新加载文件
+        # Reload the data file
         if file_path.endswith(".fil"):
             rawdatafile = filterbank.FilterbankFile(file_path)
         elif file_path.endswith(".fits"):
@@ -40,7 +54,7 @@ def plot_worker(plot_task):
             print(f"Unsupported file format: {file_path}")
             return False
         
-        # 调用waterfall绘图
+        # Generate waterfall plot
         waterfall(
             rawdatafile=rawdatafile,
             start=toa,
@@ -53,11 +67,10 @@ def plot_worker(plot_task):
             basebandStd=basebandStd,
             plot_dir=output_dir,
             pulsar=pulsar,
-            confidence=confidence,
-            plot_only=True  # 只绘图，不重复计算
+            confidence=confidence
         )
         
-        print(f"Successfully plotted: {pulsar}_toa{toa}_DM{dm}.png")
+        print(f"Successfully plotted: {pulsar}_toa{toa:.2f}_DM{dm:.2f}.png")
         return True
         
     except Exception as e:
@@ -65,21 +78,41 @@ def plot_worker(plot_task):
         traceback.print_exc()
         return False
 
-def main(args):
-    """主函数 - FRT搜索"""
+
+def extract_pulsar_name(filename):
+    """Extract pulsar/source name from filename"""
+    basename = os.path.basename(filename)
+    basename = re.sub(r'\.(fits|fil|npy)$', '', basename)
     
-    # 检查输入文件是否存在
+    # Check for FRB naming pattern
+    if 'FRB' in basename:
+        frb_match = re.search(r'FRB\d+[A-Z]?', basename)
+        if frb_match:
+            return frb_match.group(0)
+    
+    # Extract source name from filename parts
+    parts = basename.split('_')
+    if len(parts) > 0:
+        source_name = parts[0]
+        return f"PSR_{source_name}"
+    
+    return "PSR_Unknown"
+
+
+def main(args):
+    """Main function - Single file FRT search"""
+    
+    # Validate input file
     if not os.path.exists(args.input):
         raise FileNotFoundError(f"Input file not found: {args.input}")
     
-    # 检查文件格式
     if not (args.input.endswith('.fits') or args.input.endswith('.fil')):
         raise ValueError("Input file must be a .fits or .fil file")
     
-    # 加载配置
+    # Load configuration
     config = Config.fromfile(args.config)
     model = config.model
-    device_id = 0  # 默认使用GPU 0
+    device_id = 0
     
     if isinstance(model, list):
         for m in model:
@@ -87,23 +120,24 @@ def main(args):
     else:
         model.device = f"cuda:{device_id}"
     
-    # 初始化检测器
-    detector = FitsDetector(config)
-    detector.to_device(device_id)
+    # Initialize detector
+    detector = FRTDetector(config)
+    detector.transfer_to_device(device_id)
     torch.cuda.set_device(device_id)
     print("FRTSearch detector initialized")
     
-    # 设置输出目录
+    # Setup output directories
     input_basename = os.path.basename(args.input)
     input_dir = os.path.dirname(args.input) or "."
     file_prefix = os.path.splitext(input_basename)[0]
+    ext = args.input.split(".")[-1]
     
-    param_dir = os.path.join(input_dir, f"{file_prefix}_results")
-    output_dir = os.path.join(param_dir, "plots") if not args.no_plots else None
+    param_dir = os.path.join(input_dir, f"{file_prefix}_params")
+    output_dir = os.path.join(input_dir, f"{file_prefix}_png")
     
     if not os.path.exists(param_dir):
         os.makedirs(param_dir, exist_ok=True)
-    if output_dir and not os.path.exists(output_dir):
+    if not args.no_plots and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
     
     print(f"\n{'='*60}")
@@ -115,11 +149,16 @@ def main(args):
     print(f"Output directory: {param_dir}")
     print(f"{'='*60}\n")
     
+    plot_tasks = []
+    
     try:
-        # 加载文件并进行检测
+        # ========== Stage 1: Detection + Inference (combined) ==========
         print(f"Processing: {input_basename}")
-        detector.load_fits(args.input, slide_size=args.slide_size)
         
+        # Load observation file
+        detector.load_observation(args.input, slide_size=args.slide_size)
+        
+        # Detection + coordinate mapping (inference) combined
         params = detector.get_results(
             coordinate_mapping=True,
             slide_size=args.slide_size
@@ -131,18 +170,7 @@ def main(args):
         
         print(f"Detected {len(params)} candidate(s)")
         
-        # 获取文件信息
-        from utils import psrfits, filterbank
-        if args.input.endswith(".fil"):
-            rawdatafile = filterbank.FilterbankFile(args.input)
-        else:
-            rawdatafile = psrfits.PsrfitsFile(args.input)
-        
-        # 获取频率范围
-        start_freq = rawdatafile.freqs.min()
-        end_freq = rawdatafile.freqs.max()
-        
-        # 获取预处理参数
+        # Get preprocessing parameters
         downt = detector.preprocess.downsample_time
         downf = detector.preprocess.downsample_freq
         nsubint = detector.preprocess.nsubint
@@ -150,165 +178,91 @@ def main(args):
         basebandStd = detector.preprocess.basebandStd
         scaling = detector.preprocess.scaling
         
-        # 提取pulsar名称
+        # Extract pulsar/source name
         pulsar = extract_pulsar_name(input_basename)
+        if pulsar == 'PSR_Unknown':
+            pulsar = file_prefix
         
-        # ========== 关键修改：先计算所有候选的参数 ==========
-        print(f"\nComputing candidate parameters...")
-        candidate_params = []
-        
-        for idx, param in enumerate(tqdm.tqdm(params, desc="Computing parameters"), 1):
-            toa, dm, confidence = param
-            
-            # 调用waterfall函数计算参数（不绘图）
-            result = waterfall(
-                rawdatafile=rawdatafile,
-                start=toa,
-                duration=nsubint,
-                dm=dm,
-                fd=downf,
-                downsamp=downt,
-                tboxwindow=tbox,
-                scaling=scaling,
-                basebandStd=basebandStd,
-                plot_dir=output_dir,
-                pulsar=pulsar,
-                confidence=confidence,
-                compute_only=True  # 只计算，不绘图
-            )
-            
-            if result is not None:
-                snr, width_ms, mjd_toa = result
-                candidate_params.append({
-                    'cand_id': idx,
-                    'toa': toa,
-                    'mjd_toa': mjd_toa,
-                    'dm': dm,
-                    'confidence': confidence,
-                    'snr': snr,
-                    'width_ms': width_ms,
-                    'start_freq': start_freq,
-                    'end_freq': end_freq
-                })
-            else:
-                # 如果计算失败，使用默认值
-                toa_mjd = float(rawdatafile.mjd) + (toa / 86400.0)
-                candidate_params.append({
-                    'cand_id': idx,
-                    'toa': toa,
-                    'mjd_toa': toa_mjd,
-                    'dm': dm,
-                    'confidence': confidence,
-                    'snr': 0.0,
-                    'width_ms': 0.0,
-                    'start_freq': start_freq,
-                    'end_freq': end_freq
-                })
-        
-        # ========== 写参数文件 ==========
-        param_file = os.path.join(param_dir, f"{file_prefix}_candidates.txt")
+        # Write parameter file
+        param_file = os.path.join(param_dir, f"{file_prefix}.txt")
         
         with open(param_file, "w") as f:
-            # 写入表头
-            f.write("# FRTSearch Candidates\n")
-            f.write(f"# File: {input_basename}\n")
-            f.write(f"# Frequency range: {start_freq:.2f} - {end_freq:.2f} MHz\n")
-            f.write("#\n")
-            f.write("# Columns: CandID | ToA(MJD) | DM(pc/cm³) | Confidence | SNR | Width(ms) | StartFreq(MHz) | EndFreq(MHz) | Filename\n")
-            f.write("#" + "-"*120 + "\n")
-            
-            for cand in candidate_params:
-                f.write(f"{cand['cand_id']:4d} | "
-                       f"{cand['mjd_toa']:.10f} | "
-                       f"{cand['dm']:8.2f} | "
-                       f"{cand['confidence']:6.4f} | "
-                       f"{cand['snr']:7.2f} | "
-                       f"{cand['width_ms']:7.2f} | "
-                       f"{cand['start_freq']:8.2f} | "
-                       f"{cand['end_freq']:8.2f} | "
-                       f"{input_basename}\n")
+            for param in params:
+                toa, dm, score = param
+                
+                # Write parameters (format consistent with batch processing)
+                cmd = f"{args.input} {toa:.6f} {nsubint} " \
+                      f"{dm:.6f} {downf} {downt} {tbox} " \
+                      f"{scaling} {basebandStd} {score:.4f} {output_dir}\n"
+                f.write(cmd)
+                
+                # Collect plotting tasks
+                if not args.no_plots:
+                    plot_task = {
+                        'file_path': args.input,
+                        'toa': toa,
+                        'nsubint': nsubint,
+                        'dm': dm,
+                        'downf': downf,
+                        'downt': downt,
+                        'tbox': tbox,
+                        'scaling': scaling,
+                        'basebandStd': basebandStd,
+                        'output_dir': output_dir,
+                        'pulsar': pulsar,
+                        'score': score
+                    }
+                    plot_tasks.append(plot_task)
         
         print(f"\nResults saved to: {param_file}")
-        
-        # ========== 执行绘图 ==========
-        if not args.no_plots and len(candidate_params) > 0:
-            print(f"\n{'='*60}")
-            print(f"Generating diagnostic plots...")
-            print(f"{'='*60}\n")
-            
-            # 准备绘图任务
-            plot_tasks = []
-            for cand in candidate_params:
-                plot_task = {
-                    'file_path': args.input,
-                    'toa': cand['toa'],
-                    'nsubint': nsubint,
-                    'dm': cand['dm'],
-                    'downf': downf,
-                    'downt': downt,
-                    'tbox': tbox,
-                    'scaling': scaling,
-                    'basebandStd': basebandStd,
-                    'output_dir': output_dir,
-                    'pulsar': pulsar,
-                    'confidence': cand['confidence'],
-                    'cand_id': cand['cand_id']
-                }
-                plot_tasks.append(plot_task)
-            
-            # 根据置信度排序
-            if args.sort_by_score:
-                plot_tasks = sorted(plot_tasks, key=lambda x: x['confidence'], reverse=True)
-                print("Sorted by confidence score")
-            
-            # 限制绘图数量
-            if args.max_plots > 0:
-                plot_tasks = plot_tasks[:args.max_plots]
-                print(f"Limited to {len(plot_tasks)} plots")
-            
-            # 并行绘图
-            print(f"Using {args.num_plot_workers} worker(s)...")
-            with Pool(processes=args.num_plot_workers) as pool:
-                results = list(tqdm.tqdm(
-                    pool.imap(plot_worker, plot_tasks),
-                    total=len(plot_tasks),
-                    desc="Plotting"
-                ))
-            
-            success_count = sum(results)
-            print(f"\nPlotting complete: {success_count}/{len(plot_tasks)} successful")
-            print(f"Plots saved to: {output_dir}")
         
     except Exception as e:
         print(f"Error processing {args.input}: {e}")
         logging.exception(e)
         traceback.print_exc()
     finally:
-        # 清理
-        detector.clear()
+        # Clean up detector memory
+        detector.release_memory()
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
+    
+    # ========== Stage 2: Plotting (separate execution) ==========
+    if not args.no_plots and len(plot_tasks) > 0:
+        print(f"\n{'='*60}")
+        print(f"Stage 2: Generating diagnostic plots")
+        print(f"{'='*60}\n")
+        
+        # Sort by confidence score
+        if args.sort_by_score:
+            plot_tasks = sorted(plot_tasks, key=lambda x: x.get('score', 0), reverse=True)
+            print("Sorted by confidence score")
+        
+        # Limit number of plots
+        if args.max_plots > 0:
+            plot_tasks = plot_tasks[:args.max_plots]
+            print(f"Limited to {len(plot_tasks)} plots")
+        
+        # Parallel plotting
+        print(f"Plotting {len(plot_tasks)} candidates using {args.num_plot_workers} worker(s)...")
+        
+        if args.num_plot_workers > 1:
+            with Pool(processes=args.num_plot_workers) as pool:
+                results = list(tqdm.tqdm(
+                    pool.imap(plot_worker, plot_tasks),
+                    total=len(plot_tasks),
+                    desc="Plotting"
+                ))
+        else:
+            # Single process mode
+            results = []
+            for task in tqdm.tqdm(plot_tasks, desc="Plotting"):
+                results.append(plot_worker(task))
+        
+        success_count = sum(results)
+        print(f"\nPlotting complete: {success_count}/{len(plot_tasks)} successful")
+        print(f"Plots saved to: {output_dir}")
 
-def extract_pulsar_name(filename):
-    """从文件名提取pulsar名称"""
-    import re
-    basename = os.path.basename(filename)
-    basename = re.sub(r'\.(fits|fil|npy)$', '', basename)
-    
-    # 检查FRB
-    if 'FRB' in basename:
-        frb_match = re.search(r'FRB\d+[A-Z]?', basename)
-        if frb_match:
-            return frb_match.group(0)
-    
-    # 提取源名称
-    parts = basename.split('_')
-    if len(parts) > 0:
-        source_name = parts[0]
-        return f"PSR_{source_name}"
-    
-    return "PSR_Unknown"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -326,28 +280,29 @@ if __name__ == "__main__":
         epilog="""
 Examples:
   # Basic detection without plots
-  python frtsearch.py data.fits config.py --slide-size 64 --no-plots
+  python FRTSearch.py data.fits config.py --slide-size 64 --no-plots
   
   # Detection with diagnostic plots
-  python frtsearch.py data.fil config.py --slide-size 128
+  python FRTSearch.py data.fil config.py --slide-size 128
   
   # Limited plotting with sorting
-  python frtsearch.py data.fits config.py --slide-size 64 --max-plots 10 --sort-by-score
+  python FRTSearch.py data.fits config.py --slide-size 64 --max-plots 10 --sort-by-score
         """
     )
     
-    # 必需参数
+    # Required arguments
     parser.add_argument("input", 
                        help="Input PSRFITS (.fits) or Filterbank (.fil) file")
     parser.add_argument("config", 
                        help="Path to Mask R-CNN configuration file")
-    parser.add_argument("--slide-size", 
+    parser.add_argument("--slide-size", "--slide",
+                       dest="slide_size",
                        help="Sliding window size (number of subints to read at once)",
-                       type=int, required=True)
+                       type=int, default=-1)
     
-    # 绘图控制参数
+    # Plotting control arguments
     parser.add_argument("--no-plots", 
-                       help="Disable diagnostic plot generation (default: enabled)",
+                       help="Disable diagnostic plot generation",
                        action="store_true")
     parser.add_argument("--num-plot-workers", 
                        help="Number of parallel workers for plotting (default: 4)",
@@ -359,18 +314,22 @@ Examples:
                        help="Sort plots by confidence score (highest first)",
                        action="store_true")
     
-    # 日志参数
+    # Logging arguments
     parser.add_argument("--no-log", 
                        help="Do not output log files",
                        action="store_true")
     
     args = parser.parse_args()
     
-    # 检查CUDA
+    # Check CUDA availability
     if not torch.cuda.is_available():
         print("WARNING: CUDA not available, this may be very slow!")
     
-    # 开始处理
+    # Start processing
+    print("\n" + "="*60)
+    print("Stage 1: Detection + Parameter Inference")
+    print("="*60)
+    
     tic = time.time()
     main(args)
     toc = time.time()

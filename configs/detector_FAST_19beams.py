@@ -1,7 +1,7 @@
 model = [
      dict(
-        model_config='/apdcephfs/private_binhezhang/FRTSearch/models/mask-rcnn_hrnetv2p-w32-2x_FAST.py',
-        checkpoint='/apdcephfs/private_binhezhang/FRTSearch/models/epoch_36.pth',
+        model_config='./models/mask-rcnn_hrnetv2p-w32-2x_FAST.py',
+        checkpoint='./models/hrnet_epoch_36.pth',
         device='cuda:0'),
 ]
 
@@ -15,9 +15,9 @@ preprocess = dict(
     nsubint=4  
 )
 postprocess = dict(
-    threshold=0.05,
+    threshold=0.10,
     nms_cfg=dict(iou_threshold=0.85, max_candidates=20),
     mapping=dict(
-        ransac_cfg=dict(sample_points=40, iterations=10, fit_pair=True)),
+        ransac_cfg=dict(sample_points=100, iterations=15, fit_pair=True)),
     aug_cfg=dict(type='dm_filtering', threshold=3.0))
 unpack_2bit = True
