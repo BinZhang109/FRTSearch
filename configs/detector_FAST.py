@@ -6,13 +6,13 @@ model = [
 ]
 
 preprocess = dict(
-    downsample_time=1,
-    downsample_freq=1,
-    freq_range=(1130, 1465),
+    downsample_time=16,
+    downsample_freq=16,
+    freq_range=(1000, 1500),
     tbox=50,
     basebandStd=1.0,
     scaling=0.8,
-    nsubint=2
+    nsubint=4
 )
 postprocess = dict(
     threshold=0.10,
@@ -20,3 +20,4 @@ postprocess = dict(
     mapping=dict(
         ransac_cfg=dict(sample_points=100, iterations=15, fit_pair=True)),
     aug_cfg=dict(type='dm_filtering', threshold=3.0))
+

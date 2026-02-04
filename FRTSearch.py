@@ -102,6 +102,10 @@ def extract_pulsar_name(filename):
 def main(args):
     """Main function - Single file FRT search"""
     
+    # Timing statistics
+    timing = {}
+    t_total = time.time()
+    
     # Validate input file
     if not os.path.exists(args.input):
         raise FileNotFoundError(f"Input file not found: {args.input}")
@@ -109,7 +113,8 @@ def main(args):
     if not (args.input.endswith('.fits') or args.input.endswith('.fil')):
         raise ValueError("Input file must be a .fits or .fil file")
     
-    # Load configuration
+    # Step 1: Load configuration
+    t1 = time.time()
     config = Config.fromfile(args.config)
     model = config.model
     device_id = 0
@@ -120,25 +125,21 @@ def main(args):
     else:
         model.device = f"cuda:{device_id}"
     
-    # Initialize detector
+    # Step 2: Initialize and load model + Load observation data
     detector = FRTDetector(config)
     detector.transfer_to_device(device_id)
     torch.cuda.set_device(device_id)
-    print("FRTSearch detector initialized")
+    detector.load_observation(args.input, slide_size=args.slide_size)
+    timing['1. Model load and build'] = time.time() - t1
+    print(f"[1/4] Model loaded and data loaded ({timing['1. Model load and build']:.2f}s)")
     
-    # Setup output directories
+    # Setup output paths (save to current directory)
     input_basename = os.path.basename(args.input)
     input_dir = os.path.dirname(args.input) or "."
     file_prefix = os.path.splitext(input_basename)[0]
-    ext = args.input.split(".")[-1]
     
-    param_dir = os.path.join(input_dir, f"{file_prefix}_params")
-    output_dir = os.path.join(input_dir, f"{file_prefix}_png")
-    
-    if not os.path.exists(param_dir):
-        os.makedirs(param_dir, exist_ok=True)
-    if not args.no_plots and not os.path.exists(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
+    # Use current directory instead of subdirectories
+    output_dir = "."
     
     print(f"\n{'='*60}")
     print(f"FRTSearch - Fast Radio Transients Search")
@@ -146,29 +147,32 @@ def main(args):
     print(f"Input file: {args.input}")
     print(f"Config: {args.config}")
     print(f"Slide size: {args.slide_size} subints")
-    print(f"Output directory: {param_dir}")
+    print(f"Output directory: {output_dir}")
     print(f"{'='*60}\n")
     
     plot_tasks = []
     
     try:
-        # ========== Stage 1: Detection + Inference (combined) ==========
-        print(f"Processing: {input_basename}")
-        
-        # Load observation file
-        detector.load_observation(args.input, slide_size=args.slide_size)
-        
-        # Detection + coordinate mapping (inference) combined
+        # Step 3 & 4 & 5: Preprocess + Detection + Parameter inference
+        print(f"[2/4] Running preprocess, detection and parameter inference...")
         params = detector.get_results(
             coordinate_mapping=True,
             slide_size=args.slide_size
         )
         
+        # Get accurate timing from detector
+        timing['2. Preprocess'] = detector.timing['preprocess']
+        timing['3. Detection'] = detector.timing['detection']
+        timing['4. Parameter Inference'] = detector.timing['impic']
+        print(f"      Preprocess completed ({timing['2. Preprocess']:.2f}s)")
+        print(f"      Detection completed ({timing['3. Detection']:.2f}s)")
+        print(f"      Parameter inference completed ({timing['4. Parameter Inference']:.2f}s)")
+        
         if params is None or len(params) == 0:
-            print("No candidates detected.")
+            print("\n[Result] No candidates detected.")
             return
         
-        print(f"Detected {len(params)} candidate(s)")
+        print(f"\n[Result] Detected {len(params)} candidate(s)")
         
         # Get preprocessing parameters
         downt = detector.preprocess.downsample_time
@@ -183,18 +187,20 @@ def main(args):
         if pulsar == 'PSR_Unknown':
             pulsar = file_prefix
         
-        # Write parameter file
-        param_file = os.path.join(param_dir, f"{file_prefix}.txt")
+        # Write parameter file to current directory
+        param_file = f"{file_prefix}.txt"
+        fits_path = os.path.abspath(args.input)
         
         with open(param_file, "w") as f:
-            for param in params:
+            # Write header
+            f.write(f"# FRTSearch Detection Results\n")
+            f.write(f"# Columns: ID FILE_Path ToA(s) DM(pc/cm³) Time_Downsample Freq_Downsample Confidence\n")
+            f.write(f"#\n")
+            
+            for idx, param in enumerate(params, start=1):
                 toa, dm, score = param
-                
-                # Write parameters (format consistent with batch processing)
-                cmd = f"{args.input} {toa:.6f} {nsubint} " \
-                      f"{dm:.6f} {downf} {downt} {tbox} " \
-                      f"{scaling} {basebandStd} {score:.4f} {output_dir}\n"
-                f.write(cmd)
+                # Format: ID FITS_Path TOA DM Time_Downsample Freq_Downsample Confidence
+                f.write(f"{idx} {fits_path} {toa:.6f} {dm:.2f} {downt} {downf} {score:.6f}\n")
                 
                 # Collect plotting tasks
                 if not args.no_plots:
@@ -214,7 +220,7 @@ def main(args):
                     }
                     plot_tasks.append(plot_task)
         
-        print(f"\nResults saved to: {param_file}")
+        print(f"Results saved to: {param_file}")
         
     except Exception as e:
         print(f"Error processing {args.input}: {e}")
@@ -227,24 +233,24 @@ def main(args):
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     
-    # ========== Stage 2: Plotting (separate execution) ==========
+    # Step 6: Plotting
+    timing['5. Plotting'] = 0
     if not args.no_plots and len(plot_tasks) > 0:
-        print(f"\n{'='*60}")
-        print(f"Stage 2: Generating diagnostic plots")
-        print(f"{'='*60}\n")
+        print(f"\n[4/4] Generating diagnostic plots...")
+        t1 = time.time()
         
         # Sort by confidence score
         if args.sort_by_score:
             plot_tasks = sorted(plot_tasks, key=lambda x: x.get('score', 0), reverse=True)
-            print("Sorted by confidence score")
+            print("      Sorted by confidence score")
         
         # Limit number of plots
         if args.max_plots > 0:
             plot_tasks = plot_tasks[:args.max_plots]
-            print(f"Limited to {len(plot_tasks)} plots")
+            print(f"      Limited to {len(plot_tasks)} plots")
         
         # Parallel plotting
-        print(f"Plotting {len(plot_tasks)} candidates using {args.num_plot_workers} worker(s)...")
+        print(f"      Plotting {len(plot_tasks)} candidates using {args.num_plot_workers} worker(s)...")
         
         if args.num_plot_workers > 1:
             with Pool(processes=args.num_plot_workers) as pool:
@@ -260,8 +266,13 @@ def main(args):
                 results.append(plot_worker(task))
         
         success_count = sum(results)
-        print(f"\nPlotting complete: {success_count}/{len(plot_tasks)} successful")
-        print(f"Plots saved to: {output_dir}")
+        timing['5. Plotting'] = time.time() - t1
+        print(f"      Plotting complete: {success_count}/{len(plot_tasks)} successful ({timing['5. Plotting']:.2f}s)")
+        print(f"      Plots saved to current directory")
+    
+    # Calculate total time
+    timing['Total'] = time.time() - t_total
+    print(f"\nTotal processing time: {timing['Total']:.2f}s")
 
 
 if __name__ == "__main__":
@@ -327,13 +338,11 @@ Examples:
     
     # Start processing
     print("\n" + "="*60)
-    print("Stage 1: Detection + Parameter Inference")
+    print("FRTSearch Pipeline")
     print("="*60)
     
     tic = time.time()
     main(args)
     toc = time.time()
     
-    print(f"\n{'='*60}")
-    print(f"Total time: {toc - tic:.2f}s")
-    print(f"{'='*60}")
+    print(f"Program finished. Total elapsed time: {toc - tic:.2f}s")
