@@ -7,12 +7,12 @@ model = [
 
 preprocess = dict(
     downsample_time=16,
-    downsample_freq=16,
-    freq_range=(1000, 1500),
+    downsample_freq=4,
+    freq_range=(1182.1953125, 1581.8046875),
     tbox=50,
     basebandStd=1.0,
     scaling=0.8,
-    nsubint=4  
+    nsubint=3
 )
 postprocess = dict(
     threshold=0.10,
@@ -20,4 +20,4 @@ postprocess = dict(
     mapping=dict(
         ransac_cfg=dict(sample_points=100, iterations=15, fit_pair=True)),
     aug_cfg=dict(type='dm_filtering', threshold=3.0))
-unpack_2bit = True
+

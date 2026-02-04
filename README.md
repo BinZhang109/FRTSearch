@@ -150,7 +150,7 @@ If you use FRTSearch or the CRAFTS-FRT dataset in your research, please cite our
 ```bibtex
 @article{zhang2025frtsearch,
   title={FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation},
-  author={Zhang, Bin and Wang, Yabiao and Xie, Xiaoyao and You, Shanping and Yu, Xuhong and others},
+  author={Zhang, Bin and Wang, Yabiao and Xie, Xiaoyao ... and Wang, Pei and Li, Di},
   journal={Draft version (AASTeX631)},
   year={2025}
 }

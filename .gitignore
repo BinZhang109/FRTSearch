@@ -6,8 +6,8 @@
 # 图片目录
 png/
 
-# Utils 目录
-utils/
+# # Utils 目录
+# utils/
 
 # Python 缓存
 __pycache__/
