@@ -1,12 +1,15 @@
 """
-Author: Bin Zhang
-Date: 2025.8.11
+Modified from PRESTO's filterbank.py module
+Original: https://github.com/scottransom/presto
+Original Authors: Scott Ransom and contributors
+  - Original version (June 26, 2012)
+Modified by: Bin Zhang (June 23, 2024)
 
 A module for reading filterbank files.
-Support filterbank 1bit 2bit 4bit data
-Bin Zhang, June 23, 2024
-(Minor modification from file originally from June 26, 2012)
-Modified to add 4bit support
+This version adds support for 1-bit, 2-bit, and 4-bit data formats.
+
+PRESTO is licensed under the GNU General Public License v2.0.
+See LICENSE file for details.
 """
 from builtins import object
 
