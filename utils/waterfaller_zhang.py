@@ -1,6 +1,15 @@
 """
-Author: Bin Zhang
-Date: 2025.8.11
+Modified from PRESTO's waterfaller.py module
+Original: https://github.com/scottransom/presto
+Original Authors: Scott Ransom and contributors
+Modified by: Bin Zhang
+Date: 2024.06.23
+
+This module is based on PRESTO's waterfaller and has been extensively
+modified to support FRTSearch's waterfall plot generation.
+
+PRESTO is licensed under the GNU General Public License v2.0.
+See LICENSE file for details.
 """
 
 import sys

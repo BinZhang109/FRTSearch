@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 
 """
-Author: Bin Zhang
-Date: 2025.8.11
+Modified from PRESTO's psrfits.py module
+Original: https://github.com/scottransom/presto
+Original Authors: Patrick Lazarus, Scott Ransom, and contributors
+  - Patrick Lazarus (May 11, 2010: Initial version)
+  - Scott Ransom (Jul 4, 2016: Added 2-bit reading)
+  - Scott Ransom (Mar 25, 2021: Added 1-bit reading)
+Modified by: Bin Zhang (June 23, 2024)
 
-Collect PSRFITS information, emulating behavior of PRESTO.
-Read PSRFITS data.
+This module collects PSRFITS information and reads PSRFITS data,
+emulating behavior of PRESTO with additional modifications for FRTSearch.
 
-Patrick Lazarus, May 11, 2010
-  Jul 4, 2016  (Scott Ransom added 2-bit reading)
-  Mar 25, 2021 (Scott Ransom added 1-bit reading)
-  June 23, 2024 (Bin Zhang)
+PRESTO is licensed under the GNU General Public License v2.0.
+See LICENSE file for details.
 """
 from builtins import range
 from builtins import object
