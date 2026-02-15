@@ -4,7 +4,6 @@ backend_args = None
 custom_hooks = [
     dict(type='NumClassCheckHook'),
 ]
-data_root = '/det_workspace/train_data/'
 dataset_type = 'FastData'
 default_hooks = dict(
     checkpoint=dict(interval=1, type='CheckpointHook'),
@@ -261,7 +260,6 @@ test_dataloader = dict(
     batch_size=1,
     dataset=dict(
         backend_args=None,
-        data_root='/det_workspace/train_data/',
         metainfo=dict(classes=[
             'FRT',
         ]),
