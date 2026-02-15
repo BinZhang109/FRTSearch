@@ -32,7 +32,7 @@ Results are also available interactively in `test_samples.ipynb`.
 
 The model is trained on **256 (freq) × 8192 (time)** inputs. Adjust `downsample_time`, `downsample_freq`, and `--slide-size` so the effective input matches this constraint:
 
-$$\text{slide\\_size} \times 1024 \;/\; \text{downsample\\_time} \;\leq\; 8192$$
+$$\text{slide\\_size} \times 1024 ~/~ \text{downsample\\_time} \leq 8192$$
 
 ### Preset Configurations
 
