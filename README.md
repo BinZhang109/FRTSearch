@@ -50,7 +50,8 @@ FRTSearch/
 ├── models/
 │   └── hrnet_epoch_36.pth
 ├── configs/
-│   └── detector_FAST.py
+│   ├── detector_FAST.py
+│   └── detector_SKA.py
 └── ...
 ```
 
