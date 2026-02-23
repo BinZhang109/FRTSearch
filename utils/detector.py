@@ -272,8 +272,8 @@ class FRTDetector:
             del data
             gc.collect()
 
-            # End preprocess timing
-            self.timing['preprocess'] = time.time() - t_preprocess_start
+            # Accumulate preprocess timing
+            self.timing['preprocess'] += time.time() - t_preprocess_start
 
             return processed_data
 
@@ -286,6 +286,9 @@ class FRTDetector:
 
     def get_results(self, coordinate_mapping: bool = True, slide_size: int = -1) -> Optional[np.ndarray]:
         """Run detection pipeline on loaded observation."""
+        # Reset timing for this run
+        self.timing = {'preprocess': 0.0, 'detection': 0.0, 'impic': 0.0}
+        
         if slide_size < 0 or slide_size is None:
             results = self._detect_single_window(coordinate_mapping=coordinate_mapping)
         else:
@@ -303,6 +306,8 @@ class FRTDetector:
                 else:
                     end_index = index + step_samp
 
+                # Data loading is part of preprocess
+                t_load_start = time.time()
                 if self.file_extension.endswith('.fil'):
                     print(f"start_timesamp: {index}, end_timesamp: {end_index}")
                     self.spectra = self.observation_file.get_spectra_slide(start_time, index, end_index)
@@ -313,6 +318,7 @@ class FRTDetector:
                     self.spectra = self.observation_file.get_spectra_slide(start_time, start_subint, end_subint)
                 else:
                     raise ValueError(f"Unknown file type: {self.file_extension}")
+                self.timing['preprocess'] += time.time() - t_load_start
 
                 res = self._detect_single_window(coordinate_mapping=coordinate_mapping, window_offset=start_time)
                 
@@ -428,16 +434,18 @@ class FRTDetector:
                 bbox = np.concatenate(all_model_box, axis=0)
                 masks = np.concatenate(all_model_mask, axis=0)
             else:
+                self.timing['detection'] += time.time() - t_detection_start
                 return None
 
             if bbox.shape[0] == 0:
+                self.timing['detection'] += time.time() - t_detection_start
                 return None
 
             nms_cfg = self.postprocess.nms_cfg
             bbox, masks = cpu_nms(bbox=bbox, masks=masks, nms_cfg=nms_cfg)
 
-            # End detection timing
-            self.timing['detection'] = time.time() - t_detection_start
+            # Accumulate detection timing
+            self.timing['detection'] += time.time() - t_detection_start
             
             self.release_spectra()
 
@@ -452,7 +460,7 @@ class FRTDetector:
             t_impic_start = time.time()
             fit_cfg = self.postprocess["mapping"].copy()
             toa_dms = self.IMPIC(masks, **fit_cfg)
-            self.timing['impic'] = time.time() - t_impic_start
+            self.timing['impic'] += time.time() - t_impic_start
 
             scores = bbox[:, -1:]
             toa_dms = np.concatenate([toa_dms, scores], axis=1)
@@ -475,6 +483,9 @@ class FRTDetector:
             return toa_dms
 
         except Exception as e:
+            # Ensure detection timing is not lost on exception
+            if 't_detection_start' in locals():
+                self.timing['detection'] += time.time() - t_detection_start
             print(f"Error in _detect_single_window: {e}")
             self.release_spectra()
             gc.collect()
