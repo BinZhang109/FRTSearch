@@ -7,7 +7,7 @@ in pulsar search data (PSRFITS/Filterbank).
 Author: Bin Zhang
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from utils import FRTDetector, waterfall
 from utils import PsrfitsFile, SpectraInfo
