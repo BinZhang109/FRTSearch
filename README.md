@@ -1,6 +1,6 @@
 # FRTSearch: Fast Radio Transient Search
 
-[![Paper](https://img.shields.io/badge/Paper-AASTeX-blue.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Dataset](https://img.shields.io/badge/Dataset-CRAFTS--FRT-yellow.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Framework](https://img.shields.io/badge/Framework-MMDetection-red.svg)](https://github.com/open-mmlab/mmdetection) [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-grey.svg)](./LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/FRTSearch.svg)](https://pypi.org/project/FRTSearch/) [![Paper](https://img.shields.io/badge/Paper-AASTeX-blue.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Dataset](https://img.shields.io/badge/Dataset-CRAFTS--FRT-yellow.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Framework](https://img.shields.io/badge/Framework-MMDetection-red.svg)](https://github.com/open-mmlab/mmdetection) [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--2.0-grey.svg)](./LICENSE)
 
 **FRTSearch** is an end-to-end framework for discovering **Pulsars**, **Rotating Radio Transients (RRATs)**, and **Fast Radio Bursts (FRBs)** in radio astronomical observation data. Single-pulse emissions from these sources all exhibit consistent dispersive trajectories governed by the cold plasma dispersion relation ($t \propto \nu^{-2}$) in time-frequency dynamic spectra. This shared signature serves as a key beacon for identifying these astrophysical sources. FRTSearch leverages a Mask R-CNN instance segmentation model and the IMPIC algorithm to directly detect and characterize Fast Radio Transients (FRTs), infer their physical parameters (DM, ToA), and generate diagnostic plots and candidate catalogs for manual verification and scientific analysis.
 
@@ -21,24 +21,25 @@
 
 ## Installation
 
-### Option 1: From Source
+### Option 1: pip install (Recommended)
 
-> Requires: Python 3.10+, PyTorch 2.0+, CUDA 11.7+
+> Requires: Python 3.10+, CUDA 11.7+, [PyTorch](https://pytorch.org/), [PRESTO](https://github.com/scottransom/presto), [MMDetection](https://mmdetection.readthedocs.io/en/latest/get_started.html)
+
+```bash
+pip install FRTSearch
+```
+
+### Option 2: From Source
 
 ```bash
 git clone https://github.com/BinZhang109/FRTSearch.git && cd FRTSearch
-
-# MMDetection
-pip install -U openmim && mim install mmcv-full && pip install mmdet
-
-# Other dependencies
 pip install -r requirements.txt
 ```
 
-### Option 2: Docker
+### Option 3: Docker
 
 ```bash
-docker pull binzhang/FRTSearch
+docker pull binzhang/frtsearch
 ```
 
 ### Download Model Weights
@@ -60,7 +61,7 @@ FRTSearch/
 ### Full Pipeline
 
 ```bash
-python FRTSearch.py <data.fits|data.fil> <config.py> [--slide-size 128]
+FRTSearch <data.fits|data.fil> <config.py> [--slide-size 128]
 ```
 
 | Argument | Description |
@@ -75,10 +76,16 @@ Test data can be downloaded from [Hugging Face](https://huggingface.co/waterfall
 
 ```bash
 # FAST FRB detection
-python FRTSearch.py ./test_sample/FRB20121102_0038.fits ./configs/detector_FAST.py --slide-size 128
+FRTSearch ./test_sample/FRB20121102_0038.fits ./configs/detector_FAST.py --slide-size 128
 
 # SKA FRB detection
-python FRTSearch.py ./test_sample/FRB20180119_SKA_1660_1710.fil ./configs/detector_SKA.py --slide-size 8
+FRTSearch ./test_sample/FRB20180119_SKA_1660_1710.fil ./configs/detector_SKA.py --slide-size 8
+```
+
+### Training
+
+```bash
+python train.py
 ```
 
 ### Test Samples
@@ -102,10 +109,10 @@ The first pixel-level annotated FRT dataset, derived from the Commensal Radio As
 ## Citation
 
 ```bibtex
-@article{zhang2025frtsearch,
-  title={FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients},
-  author={Zhang, Bin and Wang, Yabiao and Xie, Xiaoyao and others},
-  year={2025}
+@article{zhang2026frtsearch,
+  title={FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation },
+  author={Zhang, Bin and Wang, Yabiao and Xie, Xiaoyao et al.}
+  year={2026},
 }
 ```
 

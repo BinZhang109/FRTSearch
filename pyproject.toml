@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "FRTSearch"
+version = "0.1.3"
+description = "Fast Radio Transients Search Tool — A deep learning-based detection tool for fast radio transients in pulsar search data"
+readme = "README.md"
+license = {text = "GPL-2.0-or-later"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Bin Zhang"},
+]
+keywords = ["astronomy", "radio transients", "pulsar", "FRB", "deep learning", "detection"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.22.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.5.0",
+    "astropy>=5.0",
+    "tqdm>=4.60.0",
+    "mmengine>=0.7.0",
+    "mmdet>=3.0.0",
+    "mmcv>=2.0.0",
+    "torch>=1.12.0",
+    "torchvision>=0.13.0",
+    "opencv-python>=4.5.0",
+    "scikit-image>=0.19.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/BinZhang109/FRTSearch"
+Repository = "https://github.com/BinZhang109/FRTSearch"
+Issues = "https://github.com/BinZhang109/FRTSearch/issues"
+
+[project.scripts]
+FRTSearch = "frtsearch.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["frtsearch*", "utils*"]
+
+[tool.setuptools.package-data]
+frtsearch = ["configs/*.py"]

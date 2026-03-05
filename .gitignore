@@ -1,34 +1,31 @@
-# 模型权重
+# Model weights
 *.pth
 *.pt
 *.ckpt
 
-# 图片目录
+# Image directory
 png/
 
-# # Utils 目录
-# utils/
-
-# Python 缓存
+# Python cache
 __pycache__/
 *.py[cod]
 *.pyc
 *.pyo
 *.so
 
-# 虚拟环境
+# Virtual environments
 venv/
 env/
 .venv/
 ENV/
 
-# 数据文件
+# Data files
 data/
 datasets/
 *.fits
 *.fil
 
-# 输出
+# Outputs
 outputs/
 results/
 logs/
@@ -39,10 +36,23 @@ logs/
 .idea/
 *.swp
 
-# 系统
+# System
 .DS_Store
 Thumbs.db
+
+# Test
+test/
 
 # MMDetection
 work_dirs/
 .mim/
+Dockerfile
+
+# Dataset (keep directory, ignore contents)
+CRAFTS_FRT_Dataset/train/
+CRAFTS_FRT_Dataset/val/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

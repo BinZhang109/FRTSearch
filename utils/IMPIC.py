@@ -3,7 +3,7 @@ IMPIC: Iterative Mask-based Parameter Inference and Calibration
 
 Standalone implementation of Algorithm 1 from:
     "FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients
-     using Instance Segmentation" (Zhang et al. 2025), Section 3.3
+     using Instance Segmentation" (Zhang et al. 2026), Section 3.3
 
 This module provides the IMPIC algorithm as an independent, reusable component.
 The same algorithm is integrated into the FRTSearch pipeline via FRTDetector.IMPIC()
@@ -16,7 +16,7 @@ Usage:
     results = IMPIC(masks, obs_params, ransac_cfg)
 
 Author: Bin Zhang
-Date: 2024.06.23
+Date: 2026.02.23
 """
 
 import numpy as np

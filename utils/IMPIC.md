@@ -1,6 +1,6 @@
 # IMPIC: Iterative Mask-based Parameter Inference and Calibration
 
-> **Reference:** Zhang et al. (2025), *"FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation"*, **Section 3.3, Algorithm 1**
+> **Reference:** Zhang et al. (2026), *"FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation"*, **Section 3.3, Algorithm 1**
 
 ## Overview
 
@@ -78,7 +78,7 @@ These defaults were selected via systematic grid search (Paper, Section 3.3.1), 
 |------|-------------|
 | [`utils/IMPIC.py`](IMPIC.py) | Standalone implementation — usable independently of the detection pipeline |
 | [`utils/detector.py`](detector.py) | Pipeline integration — `FRTDetector.IMPIC()` method (functionally identical) |
-| [`test_sample/test_impic.py`](../test_sample/test_impic.py) | Test examples with synthetic and real-parameter dispersion curves |
+| [`test_sample/test_impic.py`](../test_sample/test_impic.py) | End-to-end demo: sliding-window Mask R-CNN detection, mask collection, and standalone IMPIC inference |
 
 ### Standalone Usage
 
@@ -133,6 +133,6 @@ Computes the dispersive delay (in seconds) between two frequencies for a given D
 
 ## References
 
-- Zhang, B., Wang, Y., Xie, X., et al. (2025). *FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation*. Section 3.3, Algorithm 1.
+- Zhang, B., Wang, Y., Xie, X., et al. (2026). *FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation*. Section 3.3, Algorithm 1.
 - Lorimer, D. R. & Kramer, M. (2005). *Handbook of Pulsar Astronomy*. Cambridge University Press.
 - Fischler, M. A. & Bolles, R. C. (1981). *Random Sample Consensus: A Paradigm for Model Fitting*. Comm. ACM, 24(6), 381–395.
