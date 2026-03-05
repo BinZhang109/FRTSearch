@@ -4,6 +4,7 @@ backend_args = None
 custom_hooks = [
     dict(type='NumClassCheckHook'),
 ]
+data_root = './CRAFTS_FRT_Dataset/'
 dataset_type = 'FastData'
 default_hooks = dict(
     checkpoint=dict(interval=1, type='CheckpointHook'),
@@ -259,7 +260,10 @@ test_cfg = dict(type='TestLoop')
 test_dataloader = dict(
     batch_size=1,
     dataset=dict(
+        ann_file='val/val.json',
         backend_args=None,
+        data_prefix=dict(img='val/'),
+        data_root='./CRAFTS_FRT_Dataset/',
         metainfo=dict(classes=[
             'FRT',
         ]),
@@ -284,6 +288,17 @@ test_dataloader = dict(
     num_workers=2,
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = [
+    dict(
+        ann_file='./CRAFTS_FRT_Dataset/val/val.json',
+        backend_args=None,
+        format_only=False,
+        metric=[
+            'bbox',
+            'segm',
+        ],
+        type='CocoMetric'),
+]
 test_pipeline = [
     dict(to_float32=True, type='LoadImageFromNumpy'),
     dict(factors=[
@@ -299,5 +314,119 @@ test_pipeline = [
     dict(size_divisor=32, type='Pad'),
     dict(type='PackDetInputs'),
 ]
-
+train_cfg = dict(max_epochs=36, type='EpochBasedTrainLoop', val_interval=1)
+train_dataloader = dict(
+    batch_sampler=dict(type='AspectRatioBatchSampler'),
+    batch_size=2,
+    dataset=dict(
+        ann_file='train/train.json',
+        backend_args=None,
+        data_prefix=dict(img='train/'),
+        data_root='./CRAFTS_FRT_Dataset/',
+        filter_cfg=dict(filter_empty_gt=True, min_size=32),
+        metainfo=dict(classes=[
+            'FRT',
+        ]),
+        pipeline=[
+            dict(to_float32=True, type='LoadImageFromNumpy'),
+            dict(factors=[
+                0.8,
+            ], type='DynamicCorrect'),
+            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+            dict(
+                allow_negative_crop=False,
+                crop_size=(
+                    256,
+                    2048,
+                ),
+                crop_type='absolute',
+                type='RandomCrop'),
+            dict(max_paste_per_img=3, prob=0.4, type='CropAndPaste'),
+            dict(mean=[
+                0.0,
+            ], std=[
+                1.0,
+            ], to_rgb=False, type='Normalize'),
+            dict(size_divisor=32, type='Pad'),
+            dict(type='PackDetInputs'),
+        ],
+        type='FastData'),
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(to_float32=True, type='LoadImageFromNumpy'),
+    dict(factors=[
+        0.8,
+    ], type='DynamicCorrect'),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(
+        allow_negative_crop=False,
+        crop_size=(
+            256,
+            2048,
+        ),
+        crop_type='absolute',
+        type='RandomCrop'),
+    dict(max_paste_per_img=3, prob=0.4, type='CropAndPaste'),
+    dict(mean=[
+        0.0,
+    ], std=[
+        1.0,
+    ], to_rgb=False, type='Normalize'),
+    dict(size_divisor=32, type='Pad'),
+    dict(type='PackDetInputs'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='val/val.json',
+        backend_args=None,
+        data_prefix=dict(img='val/'),
+        data_root='./CRAFTS_FRT_Dataset/',
+        metainfo=dict(classes=[
+            'FRT',
+        ]),
+        pipeline=[
+            dict(to_float32=True, type='LoadImageFromNumpy'),
+            dict(factors=[
+                0.8,
+            ], type='DynamicCorrect'),
+            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+            dict(keep_ratio=True, scale_factor=1.0, type='Resize'),
+            dict(mean=[
+                0.0,
+            ], std=[
+                1.0,
+            ], to_rgb=False, type='Normalize'),
+            dict(size_divisor=32, type='Pad'),
+            dict(type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='FastData'),
+    drop_last=False,
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = [
+    dict(
+        ann_file='./CRAFTS_FRT_Dataset/val/val.json',
+        backend_args=None,
+        format_only=False,
+        metric=[
+            'bbox',
+            'segm',
+        ],
+        type='CocoMetric'),  
+]
+vis_backends = [
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='DetLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+    ])
 

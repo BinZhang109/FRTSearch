@@ -1,0 +1,15 @@
+include LICENSE
+include README.md
+include requirements.txt
+
+recursive-include configs *.py
+recursive-include utils *.py *.md
+recursive-include frtsearch *.py
+
+# Exclude large/unnecessary files
+recursive-exclude test_sample *
+recursive-exclude test *
+recursive-exclude png *
+recursive-exclude models *.pth *.pt *.ckpt
+recursive-exclude __pycache__ *
+global-exclude *.pyc *.pyo *.fits *.fil
