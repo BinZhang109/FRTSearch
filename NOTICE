@@ -1,0 +1,26 @@
+FRTSearch
+=========
+
+Copyright (c) 2024 Bin Zhang and contributors
+
+This project contains code modified from PRESTO (PulsaR Exploration and
+Search TOolkit), which is licensed under the GNU General Public License v2.0.
+
+Original PRESTO project: https://github.com/scottransom/presto
+Original Authors: Scott Ransom, Patrick Lazarus, and contributors
+
+Modified Files from PRESTO:
+- utils/spectra.py
+- utils/psrfits.py
+- utils/filterbank.py
+- utils/waterfaller_zhang.py
+
+These files have been modified to support FRTSearch functionality.
+
+Third-Party Dependencies:
+- PRESTO: https://github.com/scottransom/presto (GPL v2.0)
+- Other dependencies as listed in requirements.txt
+
+Citation:
+If you use FRTSearch in your research, please cite the original PRESTO paper
+and the FRTSearch paper (if available).
