@@ -23,7 +23,7 @@
 
 ### Option 1: pip install (Recommended)
 
-> Requires: Python 3.10+, CUDA 11.7+, [PyTorch](https://pytorch.org/), [PRESTO](https://github.com/scottransom/presto), [MMDetection](https://mmdetection.readthedocs.io/en/latest/get_started.html)
+> Requires: Python 3.10+, CUDA 11.7+, PyTorch 2.0+, [PRESTO](https://github.com/scottransom/presto), [MMDetection](https://github.com/open-mmlab/mmdetection)
 
 ```bash
 pip install FRTSearch
@@ -39,7 +39,7 @@ pip install -r requirements.txt
 ### Option 3: Docker
 
 ```bash
-docker pull binzhang/frtsearch
+docker pull binzhang109/frtsearch:v1.0.0
 ```
 
 ### Download Model Weights
@@ -61,7 +61,7 @@ FRTSearch/
 ### Full Pipeline
 
 ```bash
-FRTSearch <data.fits|data.fil> <config.py> [--slide-size 128]
+python FRTSearch.py <data.fits|data.fil> <config.py> [--slide-size 128]
 ```
 
 | Argument | Description |
@@ -76,13 +76,15 @@ Test data can be downloaded from [Hugging Face](https://huggingface.co/waterfall
 
 ```bash
 # FAST FRB detection
-FRTSearch ./test_sample/FRB20121102_0038.fits ./configs/detector_FAST.py --slide-size 128
+python FRTSearch.py ./test_sample/FRB20121102_0038.fits ./configs/detector_FAST.py --slide-size 128
 
 # SKA FRB detection
-FRTSearch ./test_sample/FRB20180119_SKA_1660_1710.fil ./configs/detector_SKA.py --slide-size 8
+python FRTSearch.py ./test_sample/FRB20180119_SKA_1660_1710.fil ./configs/detector_SKA.py --slide-size 8
 ```
 
 ### Training
+
+Download the [CRAFTS-FRT dataset](https://doi.org/10.57760/sciencedb.Fastro.00038) and place it into `CRAFTS_FRT_Dataset/` before training.
 
 ```bash
 python train.py
