@@ -48,9 +48,8 @@ work_dirs/
 .mim/
 Dockerfile
 
-# Dataset (keep directory, ignore contents)
-CRAFTS_FRT_Dataset/train/
-CRAFTS_FRT_Dataset/val/
+# Dataset (ignore only .npy files, keep everything else)
+CRAFTS_FRT_Dataset/**/*.npy
 
 # Build artifacts
 dist/
