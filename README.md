@@ -1,6 +1,6 @@
 # FRTSearch: Fast Radio Transient Search
 
-[![PyPI](https://img.shields.io/pypi/v/FRTSearch.svg)](https://pypi.org/project/FRTSearch/) [![Paper](https://img.shields.io/badge/Paper-AASTeX-blue.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Dataset](https://img.shields.io/badge/Dataset-CRAFTS--FRT-yellow.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Framework](https://img.shields.io/badge/Framework-MMDetection-red.svg)](https://github.com/open-mmlab/mmdetection) [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--2.0-grey.svg)](./LICENSE) [![Total Downloads](https://static.pepy.tech/badge/FRTSearch)](https://pepy.tech/project/FRTSearch)
+[![PyPI](https://img.shields.io/pypi/v/FRTSearch.svg)](https://pypi.org/project/FRTSearch/) [![Paper](https://img.shields.io/badge/Paper-ApJS-blue.svg)](https://doi.org/10.3847/1538-4365/ae5e76) [![Dataset](https://img.shields.io/badge/Dataset-CRAFTS--FRT-yellow.svg)](https://doi.org/10.57760/sciencedb.Fastro.00038) [![Framework](https://img.shields.io/badge/Framework-MMDetection-red.svg)](https://github.com/open-mmlab/mmdetection) [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--2.0-grey.svg)](./LICENSE) [![Total Downloads](https://static.pepy.tech/badge/FRTSearch)](https://pepy.tech/project/FRTSearch)
 
 **FRTSearch** is an end-to-end framework for discovering **Pulsars**, **Rotating Radio Transients (RRATs)**, and **Fast Radio Bursts (FRBs)** in radio astronomical observation data. Single-pulse emissions from these sources all exhibit consistent dispersive trajectories governed by the cold plasma dispersion relation ($t \propto \nu^{-2}$) in time-frequency dynamic spectra. This shared signature serves as a key beacon for identifying these astrophysical sources. FRTSearch leverages a Mask R-CNN instance segmentation model and the IMPIC algorithm to directly detect and characterize Fast Radio Transients (FRTs), infer their physical parameters (DM, ToA), and generate diagnostic plots and candidate catalogs for manual verification and scientific analysis.
 
@@ -111,10 +111,15 @@ The first pixel-level annotated FRT dataset, derived from the Commensal Radio As
 ## Citation
 
 ```bibtex
-@article{zhang2026frtsearch,
-  title={FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients using Instance Segmentation },
-  author={Zhang, Bin and Wang, Yabiao and Xie, Xiaoyao et al.}
-  year={2026},
+@article{Zhang_2026,
+  author  = {Zhang, Bin and Wang, Yabiao and Xie, Xiaoyao and You, Shanping and Yu, Xuhong and Li, Qiuhua and Li, Hongwei and Du, Shaowen and Miao, Chenchen and Zhou, Dengke and Fang, Jianhua and Wu, Jiafu and Wang, Pei and Li, Di},
+  title   = {FRTSearch: Unified Detection and Parameter Inference of Fast Radio Transients Using Instance Segmentation},
+  journal = {The Astrophysical Journal Supplement Series},
+  volume  = {284},
+  number  = {2},
+  pages   = {58},
+  year    = {2026},
+  doi     = {10.3847/1538-4365/ae5e76},
 }
 ```
 
