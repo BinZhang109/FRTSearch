@@ -28,6 +28,7 @@ datasets/
 # Outputs
 outputs/
 results/
+CRAFTS_FRT_Dataset/
 logs/
 *.log
 
@@ -49,7 +50,8 @@ work_dirs/
 Dockerfile
 
 # Dataset (ignore only .npy files, keep everything else)
-CRAFTS_FRT_Dataset/**/*.npy
+# CRAFTS_FRT_Dataset/**/*.npy
+
 
 # Build artifacts
 dist/
